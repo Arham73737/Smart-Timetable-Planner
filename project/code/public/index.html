@@ -1,0 +1,1395 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Classroom Planner</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary: #4361ee;
+        --primary-light: #eef2ff;
+        --primary-dark: #3a56d4;
+        --secondary: #2b2d42;
+        --accent: #7209b7;
+        --success: #2ec4b6;
+        --warning: #ff9f1c;
+        --danger: #e63946;
+        --light: #f8f9fa;
+        --dark: #212529;
+        --gray: #adb5bd;
+        --gray-light: #e9ecef;
+        --gray-dark: #6c757d;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --radius: 8px;
+        --transition: all 0.3s ease;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f7fa;
+        color: var(--dark);
+        line-height: 1.6;
+      }
+
+      .app-container {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* Header and Navigation */
+      .sidebar {
+        width: 280px;
+        background: white;
+        box-shadow: var(--shadow);
+        padding: 20px 0;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+        z-index: 10;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        padding: 0 20px 20px;
+        border-bottom: 1px solid var(--gray-light);
+      }
+
+      .logo i {
+        font-size: 24px;
+        color: var(--primary);
+        margin-right: 10px;
+      }
+
+      .logo h1 {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--secondary);
+      }
+
+      .nav-items {
+        padding: 20px 0;
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        color: var(--gray-dark);
+        text-decoration: none;
+        position: relative;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .nav-item i {
+        width: 20px;
+        margin-right: 10px;
+        text-align: center;
+      }
+
+      .nav-item.active {
+        color: var(--primary);
+        background-color: var(--primary-light);
+        border-left: 3px solid var(--primary);
+      }
+
+      .nav-item:hover:not(.active) {
+        background-color: var(--gray-light);
+      }
+
+      .nav-item[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .main-content {
+        flex: 1;
+        margin-left: 280px;
+        padding: 30px;
+      }
+
+      /* Status Message */
+      #status-message {
+        margin-bottom: 20px;
+        padding: 15px;
+        border-radius: var(--radius);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+      }
+
+      #status-message.info {
+        background-color: #cfe2ff;
+        color: #084298;
+      }
+
+      #status-message.success {
+        background-color: #d1e7dd;
+        color: #0f5132;
+      }
+
+      #status-message.error {
+        background-color: #f8d7da;
+        color: #842029;
+      }
+
+      #status-message::before {
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        margin-right: 10px;
+      }
+
+      #status-message.info::before {
+        content: "\f05a";
+      }
+
+      #status-message.success::before {
+        content: "\f058";
+      }
+
+      #status-message.error::before {
+        content: "\f057";
+      }
+
+      /* Sections */
+      section {
+        background: white;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        margin-bottom: 30px;
+        overflow: hidden;
+        transition: var(--transition);
+      }
+
+      section.hidden {
+        display: none;
+      }
+
+      .section-header {
+        padding: 20px;
+        border-bottom: 1px solid var(--gray-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .section-header h2 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--secondary);
+        display: flex;
+        align-items: center;
+      }
+
+      .section-header h2 i {
+        margin-right: 10px;
+        color: var(--primary);
+      }
+
+      .section-content {
+        padding: 20px;
+      }
+
+      /* Upload Section */
+      .file-upload {
+        border: 2px dashed var(--gray);
+        border-radius: var(--radius);
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+        margin-bottom: 20px;
+      }
+
+      .file-upload:hover,
+      .file-upload.dragging {
+        border-color: var(--primary);
+        background-color: var(--primary-light);
+      }
+
+      .file-upload i {
+        font-size: 48px;
+        color: var(--gray);
+        margin-bottom: 15px;
+        transition: var(--transition);
+      }
+
+      .file-upload.dragging i {
+        color: var(--primary);
+      }
+
+      .file-upload p {
+        margin-bottom: 15px;
+        color: var(--gray-dark);
+      }
+
+      #json-preview {
+        background-color: var(--gray-light);
+        border-radius: var(--radius);
+        padding: 15px;
+        max-height: 300px;
+        overflow-y: auto;
+        font-family: monospace;
+        font-size: 12px;
+        white-space: pre-wrap;
+      }
+
+      /* Session Info */
+      .session-card {
+        background-color: var(--light);
+        border-radius: var(--radius);
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+
+      .session-card h3 {
+        margin-bottom: 10px;
+        color: var(--primary);
+      }
+
+      .programs {
+        margin-top: 15px;
+      }
+
+      .programs > div {
+        margin-bottom: 10px;
+      }
+
+      .programs ul {
+        margin-top: 5px;
+        margin-left: 20px;
+      }
+
+      /* Course Scheduling */
+      .layout {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 20px;
+      }
+
+      .course-list-container {
+        background-color: var(--light);
+        border-radius: var(--radius);
+        padding: 15px;
+        max-height: 600px;
+        overflow-y: auto;
+      }
+
+      .course-item {
+        background-color: white;
+        border-left: 4px solid var(--primary);
+        border-radius: var(--radius);
+        padding: 10px;
+        margin-bottom: 10px;
+        cursor: move;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: var(--transition);
+      }
+
+      .course-item:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+      }
+
+      .course-item strong {
+        color: var(--secondary);
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      .course-meta {
+        font-size: 12px;
+        color: var(--gray-dark);
+        display: flex;
+        justify-content: space-between;
+      }
+
+      /* Timetable */
+      .timetable-container {
+        overflow-x: auto;
+        background-color: white;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 12px;
+        text-align: center;
+        border: 1px solid var(--gray-light);
+      }
+
+      th {
+        background-color: var(--primary-light);
+        color: var(--primary-dark);
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+      }
+
+      .drop-target {
+        height: 80px;
+        background-color: white;
+        transition: var(--transition);
+        position: relative;
+      }
+
+      .drop-target:hover {
+        background-color: var(--primary-light);
+      }
+
+      .drop-target.available {
+        background-color: rgba(46, 196, 182, 0.1);
+        border: 2px solid var(--success);
+      }
+
+      .drop-target.unavailable {
+        background-color: rgba(230, 57, 70, 0.1);
+        border: 2px solid var(--danger);
+      }
+
+      .scheduled-course {
+        background-color: var(--primary-light);
+        border-left: 3px solid var(--primary);
+        border-radius: 5px;
+        padding: 8px;
+        margin: 2px 0;
+        font-size: 12px;
+        position: relative;
+        transition: var(--transition);
+      }
+
+      .scheduled-course:hover {
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .remove-course {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 18px;
+        height: 18px;
+        background-color: var(--danger);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: var(--transition);
+      }
+
+      .remove-course:hover {
+        opacity: 1;
+        transform: scale(1.1);
+      }
+
+      /* Classroom Assignment */
+      .scheduled-course-item {
+        background-color: white;
+        border-radius: var(--radius);
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .scheduled-course-item h4 {
+        color: var(--primary);
+        margin-bottom: 10px;
+        border-bottom: 1px solid var(--gray-light);
+        padding-bottom: 5px;
+      }
+
+      .slots-list {
+        margin-left: 0;
+      }
+
+      .slot-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background-color: var(--light);
+        border-radius: var(--radius);
+        margin-bottom: 8px;
+      }
+
+      .slot-time {
+        font-weight: 500;
+        color: var(--secondary);
+      }
+
+      /* Final Timetable */
+      .final-timetable {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .final-timetable th {
+        background-color: var(--primary);
+        color: white;
+      }
+
+      .final-timetable td {
+        vertical-align: top;
+        min-width: 150px;
+      }
+
+      /* Buttons */
+      button {
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius);
+        padding: 10px 15px;
+        cursor: pointer;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+      }
+
+      button:hover {
+        background-color: var(--primary-dark);
+      }
+
+      button i {
+        margin-right: 8px;
+      }
+
+      button[disabled] {
+        background-color: var(--gray);
+        cursor: not-allowed;
+      }
+
+      .btn-success {
+        background-color: var(--success);
+      }
+
+      .btn-success:hover {
+        background-color: #25a89d;
+      }
+
+      /* Form elements */
+      input[type="file"] {
+        display: none;
+      }
+
+      select {
+        padding: 8px 12px;
+        border-radius: var(--radius);
+        border: 1px solid var(--gray);
+        background-color: white;
+        width: 100%;
+        font-family: inherit;
+        cursor: pointer;
+      }
+
+      select:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+
+      /* Responsive */
+      @media (max-width: 992px) {
+        .sidebar {
+          width: 70px;
+        }
+
+        .logo h1,
+        .nav-item span {
+          display: none;
+        }
+
+        .logo i {
+          margin-right: 0;
+        }
+
+        .nav-item {
+          justify-content: center;
+        }
+
+        .nav-item i {
+          margin-right: 0;
+        }
+
+        .main-content {
+          margin-left: 70px;
+        }
+
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .main-content {
+          padding: 15px;
+        }
+      }
+      .mr-2 {
+        margin-right: 10px;
+      }
+
+      .btn-secondary {
+        background-color: var(--secondary);
+      }
+
+      .btn-secondary:hover {
+        background-color: #3a3d57;
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <div class="logo">
+          <i class="fas fa-university"></i>
+          <h1>Classroom Planner</h1>
+        </div>
+        <div class="nav-items">
+          <div class="nav-item active" data-section="upload-section">
+            <i class="fas fa-file-upload"></i>
+            <span>Import Data</span>
+          </div>
+          <div class="nav-item" data-section="session-section" disabled>
+            <i class="fas fa-info-circle"></i>
+            <span>Session Info</span>
+          </div>
+          <div class="nav-item" data-section="scheduling-section" disabled>
+            <i class="fas fa-calendar-alt"></i>
+            <span>Schedule Courses</span>
+          </div>
+          <div class="nav-item" data-section="classroom-section" disabled>
+            <i class="fas fa-chalkboard"></i>
+            <span>Assign Classrooms</span>
+          </div>
+          <div class="nav-item" data-section="result-section" disabled>
+            <i class="fas fa-table"></i>
+            <span>View Timetable</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div id="status-message" style="display: none"></div>
+
+        <!-- Upload Section -->
+        <section id="upload-section">
+          <div class="section-header">
+            <h2><i class="fas fa-file-upload"></i> Import Session Data</h2>
+          </div>
+          <div class="section-content">
+            <div class="file-upload" id="drop-area">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <h3>Drag & drop your JSON file here</h3>
+              <p>or</p>
+              <button id="browse-files">
+                <i class="fas fa-folder-open"></i> Browse Files
+              </button>
+              <input type="file" id="json-file" accept=".json" />
+            </div>
+            <div id="json-preview-container" style="display: none">
+              <h3>JSON Preview</h3>
+              <div id="json-preview"></div>
+              <button
+                id="load-json"
+                class="btn-success"
+                style="margin-top: 15px"
+              >
+                <i class="fas fa-check-circle"></i> Load Data
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Session Section -->
+        <section id="session-section" class="hidden">
+          <div class="section-header">
+            <h2><i class="fas fa-info-circle"></i> Session Information</h2>
+            <button id="create-session">
+              <i class="fas fa-play"></i> Create Session
+            </button>
+          </div>
+          <div class="section-content">
+            <div id="session-info"></div>
+          </div>
+        </section>
+
+        <!-- Scheduling Section -->
+        <section id="scheduling-section" class="hidden">
+          <div class="section-header">
+            <h2><i class="fas fa-calendar-alt"></i> Schedule Courses</h2>
+          </div>
+          <div class="section-content">
+            <div class="layout">
+              <div class="course-list-container">
+                <h3>Available Courses</h3>
+                <div id="available-courses"></div>
+              </div>
+              <div class="timetable-container">
+                <table id="timetable">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>Monday</th>
+                      <th>Tuesday</th>
+                      <th>Wednesday</th>
+                      <th>Thursday</th>
+                      <th>Friday</th>
+                    </tr>
+                  </thead>
+                  <tbody id="timetable-body">
+                    <!-- Will be filled dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Classroom Assignment Section -->
+        <section id="classroom-section" class="hidden">
+          <div class="section-header">
+            <h2><i class="fas fa-chalkboard"></i> Assign Classrooms</h2>
+          </div>
+          <div class="section-content">
+            <div id="scheduled-courses"></div>
+          </div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="result-section" class="hidden">
+          <div class="section-header">
+            <h2><i class="fas fa-table"></i> Complete Timetable</h2>
+            <div>
+              <button id="generate-timetable" class="mr-2">
+                <i class="fas fa-sync-alt"></i> Generate Timetable
+              </button>
+              <button id="download-timetable" class="btn-secondary" disabled>
+                <i class="fas fa-download"></i> Download JSON
+              </button>
+            </div>
+          </div>
+          <div class="section-content">
+            <div id="final-timetable"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./backend.js"></script>
+    <script>
+      // Global session object
+      let currentSession = null;
+      let jsonData = null;
+      let currentDraggedCourseId = null;
+
+      // DOM Elements
+      const jsonFileInput = document.getElementById("json-file");
+      const loadJsonButton = document.getElementById("load-json");
+      const jsonPreview = document.getElementById("json-preview");
+      const jsonPreviewContainer = document.getElementById(
+        "json-preview-container",
+      );
+      const createSessionButton = document.getElementById("create-session");
+      const sessionInfo = document.getElementById("session-info");
+      const availableCourses = document.getElementById("available-courses");
+      const timetableBody = document.getElementById("timetable-body");
+      const scheduledCourses = document.getElementById("scheduled-courses");
+      const generateTimetableButton =
+        document.getElementById("generate-timetable");
+      const finalTimetable = document.getElementById("final-timetable");
+      const statusMessage = document.getElementById("status-message");
+      const browseFilesBtn = document.getElementById("browse-files");
+      const dropArea = document.getElementById("drop-area");
+
+      // Sections
+      const uploadSection = document.getElementById("upload-section");
+      const sessionSection = document.getElementById("session-section");
+      const schedulingSection = document.getElementById("scheduling-section");
+      const classroomSection = document.getElementById("classroom-section");
+      const resultSection = document.getElementById("result-section");
+      const navItems = document.querySelectorAll(".nav-item");
+
+      // Navigation
+      navItems.forEach((item) => {
+        item.addEventListener("click", function () {
+          if (this.hasAttribute("disabled")) return;
+
+          // Update active nav item
+          navItems.forEach((nav) => nav.classList.remove("active"));
+          this.classList.add("active");
+
+          // Show corresponding section
+          const sectionId = this.getAttribute("data-section");
+          document.querySelectorAll("section").forEach((section) => {
+            section.classList.add("hidden");
+          });
+          document.getElementById(sectionId).classList.remove("hidden");
+        });
+      });
+
+      // File upload handling
+      browseFilesBtn.addEventListener("click", () => {
+        jsonFileInput.click();
+      });
+
+      dropArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropArea.classList.add("dragging");
+      });
+
+      dropArea.addEventListener("dragleave", () => {
+        dropArea.classList.remove("dragging");
+      });
+
+      dropArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropArea.classList.remove("dragging");
+
+        const file = e.dataTransfer.files[0];
+        if (file) handleFile(file);
+      });
+
+      jsonFileInput.addEventListener("change", () => {
+        const file = jsonFileInput.files[0];
+        if (file) handleFile(file);
+      });
+
+      function handleFile(file) {
+        if (file.type !== "application/json") {
+          showMessage("Please select a JSON file", "error");
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            jsonData = JSON.parse(e.target.result);
+            jsonPreview.textContent = JSON.stringify(jsonData, null, 2);
+            jsonPreviewContainer.style.display = "block";
+            showMessage("JSON file loaded successfully", "success");
+          } catch (error) {
+            showMessage(`Error parsing JSON: ${error.message}`, "error");
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      // Event Listeners
+      loadJsonButton.addEventListener("click", handleJsonLoad);
+      createSessionButton.addEventListener("click", createSession);
+      generateTimetableButton.addEventListener("click", generateFinalTimetable);
+
+      // Handle JSON file loading
+      function handleJsonLoad() {
+        if (!jsonData) {
+          showMessage("No JSON data loaded", "error");
+          return;
+        }
+
+        // Enable session section
+        document
+          .querySelector('[data-section="session-section"]')
+          .removeAttribute("disabled");
+
+        // Navigate to session section
+        document.querySelector('[data-section="session-section"]').click();
+
+        showMessage("JSON data loaded successfully", "success");
+      }
+
+      // Create session from JSON
+      function createSession() {
+        try {
+          // This calls your backend function
+          currentSession = createSessionFromJson(jsonData);
+
+          // Display session information
+          displaySessionInfo();
+
+          // Enable all navigation items
+          navItems.forEach((item) => {
+            item.removeAttribute("disabled");
+          });
+
+          // Navigate to scheduling section
+          document.querySelector('[data-section="scheduling-section"]').click();
+
+          // Populate timetable structure
+          createTimetableStructure();
+
+          // Populate available courses
+          populateAvailableCourses();
+
+          showMessage("Session created successfully", "success");
+        } catch (error) {
+          showMessage(`Error creating session: ${error.message}`, "error");
+        }
+      }
+
+      // Display session information
+      function displaySessionInfo() {
+        let html = `<div class="session-card">
+                    <h3>${currentSession.name} (ID: ${currentSession.id})</h3>`;
+
+        // Display programs
+        html += '<div class="programs">';
+        currentSession.programs.forEach((program) => {
+          html += `<div><strong>${program.name}</strong> (${program.id})</div>`;
+
+          // Display departments
+          program.departments.forEach((dept) => {
+            html += `<div style="margin-left: 20px">
+                      <strong>Department:</strong> ${dept.name} (${dept.id})
+                      <ul>
+                          <li>Courses: ${dept.courses.length}</li>
+                          <li>Students: ${dept.students.length}</li>
+                          <li>Instructors: ${dept.instructors.length}</li>
+                          <li>Classrooms: ${dept.classrooms.length}</li>
+                      </ul>
+                  </div>`;
+          });
+        });
+        html += "</div></div>";
+
+        sessionInfo.innerHTML = html;
+      }
+
+      // Create timetable structure
+      function createTimetableStructure() {
+        const hours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+        let html = "";
+
+        hours.forEach((hour) => {
+          const displayHour = hour > 12 ? hour - 12 : hour;
+          const ampm = hour >= 12 ? "PM" : "AM";
+
+          html += `<tr>
+                  <th>${displayHour}:00 ${ampm}</th>`;
+
+          // Add cells for each day
+          ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].forEach(
+            (day) => {
+              html += `<td class="drop-target"
+                            data-day="${day}"
+                            data-hour="${hour}"></td>`;
+            },
+          );
+
+          html += `</tr>`;
+        });
+
+        timetableBody.innerHTML = html;
+
+        // Add event listeners for drag and drop
+        document.querySelectorAll(".drop-target").forEach((cell) => {
+          cell.addEventListener("dragover", function (e) {
+            e.preventDefault(); // Allow drop
+          });
+
+          cell.addEventListener("drop", function (e) {
+            e.preventDefault();
+            const courseId = e.dataTransfer.getData("text");
+            clearSlotHighlights(); // Clear highlights when dropping
+            handleCourseDrop(courseId, this);
+          });
+        });
+      }
+
+      // Highlight available slots for a course
+      function highlightAvailableSlots(courseId) {
+        const course = findCourseById(courseId);
+        if (!course) return;
+
+        document.querySelectorAll(".drop-target").forEach((cell) => {
+          const day = cell.getAttribute("data-day");
+          const hour = parseInt(cell.getAttribute("data-hour"));
+          const slot = findSlot(day, hour);
+
+          if (slot && course.isSlotAvailable(slot)) {
+            cell.classList.add("available");
+          } else {
+            cell.classList.add("unavailable");
+          }
+        });
+      }
+
+      // Clear slot highlights
+      function clearSlotHighlights() {
+        document.querySelectorAll(".drop-target").forEach((cell) => {
+          cell.classList.remove("available");
+          cell.classList.remove("unavailable");
+        });
+      }
+
+      // Handle course drop onto a time slot
+      function handleCourseDrop(courseId, dropTarget) {
+        const day = dropTarget.getAttribute("data-day");
+        const hour = parseInt(dropTarget.getAttribute("data-hour"));
+
+        // Find the course and slot
+        const course = findCourseById(courseId);
+        const slot = findSlot(day, hour);
+
+        if (!course) {
+          showMessage("Course not found", "error");
+          return;
+        }
+
+        if (!slot) {
+          showMessage(`Slot not found for ${day} at ${hour}:00`, "error");
+          return;
+        }
+
+        // Try to assign the course to the slot
+        if (course.assignSlot(slot)) {
+          // Create a new element for this course
+          const courseElement = document.createElement("div");
+          courseElement.className = "scheduled-course";
+          courseElement.setAttribute("data-course-id", course.id);
+          courseElement.setAttribute("data-day", day);
+          courseElement.setAttribute("data-hour", hour);
+
+          // Add course content
+          courseElement.innerHTML = `
+                  <div class="remove-course" title="Remove course">×</div>
+                  <strong>${course.name}</strong><br>${course.instructor.name}
+              `;
+
+          // Add event listener to remove button
+          const removeButton = courseElement.querySelector(".remove-course");
+          removeButton.addEventListener("click", function () {
+            removeCourseFromSlot(course, slot, courseElement);
+          });
+
+          // Add the course to the cell
+          dropTarget.appendChild(courseElement);
+
+          showMessage(
+            `Course ${course.name} scheduled successfully`,
+            "success",
+          );
+
+          // Update classroom assignment section
+          updateScheduledCoursesList();
+
+          // Show classroom section
+          document
+            .querySelector('[data-section="classroom-section"]')
+            .removeAttribute("disabled");
+        } else {
+          showMessage(
+            `Cannot schedule ${course.name} in this slot due to conflicts`,
+            "error",
+          );
+        }
+      }
+
+      // Remove a course from a slot
+      function removeCourseFromSlot(course, slot, courseElement) {
+        // Call the removeSlot method from your backend
+        if (course.removeSlot(slot)) {
+          // Remove the element from UI
+          courseElement.parentNode.removeChild(courseElement);
+
+          showMessage(`Removed ${course.name} from schedule`, "success");
+
+          // Update classroom assignment UI
+          updateScheduledCoursesList();
+        } else {
+          showMessage(`Failed to remove ${course.name} from slot`, "error");
+        }
+      }
+
+      // Populate available courses
+      function populateAvailableCourses() {
+        let html = "";
+
+        // Get all courses from all departments
+        currentSession.programs.forEach((program) => {
+          program.departments.forEach((dept) => {
+            dept.courses.forEach((course) => {
+              html += `<div class="course-item"
+                                draggable="true"
+                                data-course-id="${course.id}">
+                          <strong>${course.name}</strong>
+                          <div class="course-meta">
+                            <span>Credits: ${course.credits}</span>
+                            <span>Students: ${course.students.length}</span>
+                          </div>
+                          <div>Instructor: ${course.instructor.name}</div>
+                      </div>`;
+            });
+          });
+        });
+
+        availableCourses.innerHTML = html;
+
+        // Add drag event listeners
+        document.querySelectorAll(".course-item").forEach((item) => {
+          item.addEventListener("dragstart", function (e) {
+            const courseId = this.getAttribute("data-course-id");
+            e.dataTransfer.setData("text", courseId);
+            currentDraggedCourseId = courseId;
+
+            // Highlight available slots after a small delay
+            setTimeout(() => {
+              highlightAvailableSlots(courseId);
+            }, 50);
+          });
+
+          item.addEventListener("dragend", function () {
+            clearSlotHighlights();
+            currentDraggedCourseId = null;
+          });
+        });
+      }
+
+      // Update scheduled courses list for classroom assignment
+      function updateScheduledCoursesList() {
+        let html = "";
+
+        // Get all scheduled courses
+        currentSession.programs.forEach((program) => {
+          program.departments.forEach((dept) => {
+            dept.courses.forEach((course) => {
+              if (course.slots.size > 0) {
+                html += `<div class="scheduled-course-item">
+                              <h4>${course.name} (${course.id})</h4>`;
+
+                // List slots
+                html += '<div class="slots-list">';
+                course.slots.forEach((slot) => {
+                  const displayHour =
+                    slot.hour > 12 ? slot.hour - 12 : slot.hour;
+                  const ampm = slot.hour >= 12 ? "PM" : "AM";
+
+                  // Check if classroom is assigned
+                  const classroom = course.slotClassroomMap[slot];
+                  let classroomText = `<select class="classroom-select"
+                                          data-course-id="${course.id}"
+                                          data-slot-day="${slot.day}"
+                                          data-slot-hour="${slot.hour}">
+                                      <option value="">Select classroom</option>
+                                      ${getAvailableClassroomsOptions(course, slot)}
+                                  </select>`;
+                  if (classroom)
+                    classroomText =
+                      `<div class="assigned-classroom">Assigned to: ${classroom.id} (capacity: ${classroom.capacity})</div>` +
+                      classroomText;
+
+                  html += `<div class="slot-item">
+                                  <span class="slot-time">${slot.day}, ${displayHour}:00 ${ampm}</span>
+                                  <span>${classroomText}</span>
+                              </div>`;
+                });
+                html += "</div></div>";
+              }
+            });
+          });
+        });
+
+        scheduledCourses.innerHTML = html;
+
+        // Add event listeners to classroom selects
+        document.querySelectorAll(".classroom-select").forEach((select) => {
+          select.addEventListener("change", (e) => {
+            assignClassroom(e);
+            updateScheduledCoursesList();
+          });
+        });
+      }
+
+      // Get options for available classrooms
+      function getAvailableClassroomsOptions(course, slot) {
+        let options = "";
+
+        // Get all classrooms from all departments
+        currentSession.programs.forEach((program) => {
+          program.departments.forEach((dept) => {
+            dept.classrooms.forEach((classroom) => {
+              // Check if classroom has enough capacity and is available
+              if (
+                classroom.capacity >= course.students.length &&
+                course.isClassroomAvailable(slot, classroom)
+              ) {
+                options += `<option value="${classroom.id}">${classroom.id} (capacity: ${classroom.capacity})</option>`;
+              }
+            });
+          });
+        });
+
+        return options;
+      }
+
+      // Assign classroom to course and slot
+      function assignClassroom(event) {
+        const select = event.target;
+        const courseId = select.getAttribute("data-course-id");
+        const slotDay = select.getAttribute("data-slot-day");
+        const slotHour = parseInt(select.getAttribute("data-slot-hour"));
+        const classroomId = select.value;
+
+        if (!classroomId) return;
+
+        // Find course, slot and classroom
+        const course = findCourseById(courseId);
+        const slot = findSlot(slotDay, slotHour);
+        const classroom = findClassroomById(classroomId);
+
+        if (course && slot && classroom) {
+          // Try to assign classroom
+          if (course.assignClassroom(slot, classroom)) {
+            showMessage(
+              `Classroom ${classroom.id} assigned to ${course.name}`,
+              "success",
+            );
+          } else {
+            showMessage(
+              `Cannot assign classroom ${classroom.id} to ${course.name}`,
+              "error",
+            );
+          }
+        }
+      }
+
+      // Generate final timetable
+      function generateFinalTimetable() {
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+        const hours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+
+        let html = '<table class="final-timetable">';
+        html += "<thead><tr><th>Time</th>";
+        days.forEach((day) => {
+          html += `<th>${day}</th>`;
+        });
+        html += "</tr></thead><tbody>";
+
+        // Generate rows for each hour
+        hours.forEach((hour) => {
+          const displayHour = hour > 12 ? hour - 12 : hour;
+          const ampm = hour >= 12 ? "PM" : "AM";
+
+          html += `<tr><th>${displayHour}:00 ${ampm}</th>`;
+
+          // Generate cells for each day
+          days.forEach((day) => {
+            html += "<td>";
+
+            // Find courses scheduled in this slot
+            currentSession.programs.forEach((program) => {
+              program.departments.forEach((dept) => {
+                dept.courses.forEach((course) => {
+                  course.slots.forEach((slot) => {
+                    if (slot.day === day && slot.hour === hour) {
+                      const classroom = course.slotClassroomMap[slot];
+                      const classroomText = classroom
+                        ? `Room: ${classroom.id}`
+                        : "No room assigned";
+
+                      html += `<div class="scheduled-course">
+                                          <strong>${course.name}</strong><br>
+                                          ${course.instructor.name}<br>
+                                          ${classroomText}
+                                      </div>`;
+                    }
+                  });
+                });
+              });
+            });
+
+            html += "</td>";
+          });
+
+          html += "</tr>";
+        });
+
+        html += "</tbody></table>";
+        finalTimetable.innerHTML = html;
+
+        showMessage("Timetable generated successfully", "success");
+      }
+
+      // Helper function to find a course by ID
+      function findCourseById(id) {
+        return currentSession.allCoursesById[id];
+      }
+
+      // Helper function to find a slot by day and hour
+      function findSlot(day, hour) {
+        // Find the day index
+        const dayIndex = [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+        ].indexOf(day);
+
+        if (dayIndex === -1) {
+          console.error(`Invalid day: ${day}`);
+          return null;
+        }
+
+        // Get slot array for the day
+        const daySlots = currentSession.slots[dayIndex];
+
+        // Find the hour index (slot position in the array)
+        // Assuming hours 8-17 map to indices 0-9
+        const hourIndex = hour - 8;
+
+        if (hourIndex < 0 || hourIndex >= daySlots.length) {
+          console.error(`Invalid hour index: ${hourIndex} for hour ${hour}`);
+          return null;
+        }
+
+        return daySlots[hourIndex];
+      }
+
+      // Helper function to find a classroom by ID
+      function findClassroomById(id) {
+        return currentSession.allClassroomsById[id];
+      }
+
+      // Show status message
+      function showMessage(message, type = "info") {
+        statusMessage.textContent = message;
+        statusMessage.className = type;
+        statusMessage.style.display = "block";
+
+        // Hide message after 5 seconds
+        setTimeout(() => {
+          statusMessage.style.display = "none";
+        }, 5000);
+      }
+
+      // Get the download button element
+      const downloadTimetableBtn =
+        document.getElementById("download-timetable");
+
+      // Add event listener to the download button
+      downloadTimetableBtn.addEventListener("click", downloadTimetableAsJson);
+
+      // Add event listener to enable download button after generating timetable
+      generateTimetableButton.addEventListener("click", function () {
+        // Enable the download button after timetable is generated
+        downloadTimetableBtn.disabled = false;
+      });
+
+      // Function to download timetable as JSON
+      function downloadTimetableAsJson() {
+        if (!currentSession) {
+          showMessage("No session data available", "error");
+          return;
+        }
+
+        try {
+          // Create timetable data object
+          const timetableData = {
+            sessionName: currentSession.name,
+            sessionId: currentSession.id,
+            generatedAt: new Date().toISOString(),
+            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            hours: [8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+            schedule: {},
+          };
+
+          // Initialize schedule structure
+          timetableData.days.forEach((day) => {
+            timetableData.schedule[day] = {};
+            timetableData.hours.forEach((hour) => {
+              timetableData.schedule[day][hour] = [];
+            });
+          });
+
+          // Populate schedule with course data
+          currentSession.programs.forEach((program) => {
+            program.departments.forEach((dept) => {
+              dept.courses.forEach((course) => {
+                course.slots.forEach((slot) => {
+                  const classroom = course.slotClassroomMap[slot];
+
+                  timetableData.schedule[slot.day][slot.hour].push({
+                    courseId: course.id,
+                    courseName: course.name,
+                    instructorId: course.instructor.id,
+                    instructorName: course.instructor.name,
+                    classroom: classroom
+                      ? {
+                          id: classroom.id,
+                          capacity: classroom.capacity,
+                        }
+                      : null,
+                    studentCount: course.students.length,
+                  });
+                });
+              });
+            });
+          });
+
+          // Convert to JSON string with formatting
+          const jsonData = JSON.stringify(timetableData, null, 2);
+
+          // Create Blob from the JSON data
+          const blob = new Blob([jsonData], { type: "application/json" });
+
+          // Create object URL for the Blob
+          const url = URL.createObjectURL(blob);
+
+          // Create temporary download link
+          const downloadLink = document.createElement("a");
+
+          // Set download attributes
+          downloadLink.href = url;
+          downloadLink.download = `timetable_${currentSession.id}_${new Date().toISOString().split("T")[0]}.json`;
+
+          // Append link to document, trigger click, and remove
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+
+          // Clean up the object URL
+          setTimeout(() => {
+            URL.revokeObjectURL(url);
+          }, 100);
+
+          showMessage("Timetable downloaded successfully", "success");
+        } catch (error) {
+          console.error("Error downloading timetable:", error);
+          showMessage(
+            `Failed to download timetable: ${error.message}`,
+            "error",
+          );
+        }
+      }
+    </script>
+  </body>
+</html>

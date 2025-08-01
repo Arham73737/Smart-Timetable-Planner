@@ -1,0 +1,29 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Logs
+logs
+*.log
+logs/*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+
+# Optional: Ignore editor configs or folders
+.vscode/
+.idea/
+
+# Build output (if applicable)
+dist/
+build/
+
+# Optional: Ignore test coverage output
+coverage/
